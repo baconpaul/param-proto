@@ -140,6 +140,20 @@ struct Collector
         }
         return true;
     }
+
+    template <size_t N>
+    bool extractOnto(std::array<float *, N> &arr, const CollectedRange &r)
+    {
+        auto pts = r.to - r.from;
+        assert(pts <= N);
+        if (pts > N)
+            return false;
+        for (auto i=0; i<pts; ++i)
+        {
+            arr[i] = std::get_if<float>(&paramWeakPtrs[i + r.from]->val);
+        }
+        return true;
+    }
 };
 
 struct CaptureCollectedRangeGuard

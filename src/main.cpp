@@ -89,5 +89,14 @@ int main(int argc, char **argv)
         std::cout << "  - " << std::get<float>(f) << std::endl;
    }
 
+   std::array<float *, 2> oscFP;
+   assert(ss.collector.extractOnto(oscFP, ss.osc[1].range));
+   for (const auto &f : oscFP)
+   {
+        std::cout << "  - " << (f ? std::to_string(*f) : "nullptr") << std::endl;
+   }
+
+
+
    return 0;
 }
