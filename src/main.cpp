@@ -69,6 +69,35 @@ struct FilteredAREnvPatch
     }
 };
 
+struct ToySynthUsingThis
+{
+    FilteredAREnvPatch patch;
+
+    struct Delay
+    {
+    };
+    struct Voice
+    {
+        struct SawSin
+        {
+            const OscPatch &patch;
+            std::array<float *, 2> pFltVal;
+            size_t sqrSawIdx, pulseIdx;
+            SawSin(const OscPatch &p, const std::array<float *, 2> &pf) : patch(p), pFltVal(pf)
+            {
+                sqrSawIdx = patch.sqrSawMix.runtimeIndex - patch.range.from;
+                pulseIdx = patch.pulseWidth.runtimeIndex - patch.range.from;
+            }
+
+            void process()
+            {
+                std::cout << "Got a voice osc " << (size_t)this
+                          << " with ss=" << *pFltVal[sqrSawIdx] << " pw=" << *pFltVal[pulseIdx]
+                          << std::endl;
+            }
+        };
+    };
+};
 
 int main(int argc, char **argv)
 {
