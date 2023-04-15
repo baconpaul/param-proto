@@ -2,12 +2,27 @@
 
 #include "param.h"
 
+struct DelayPatch
+{
+    params::CollectedRange range;
+    params::Param sampleDelay, feedback;
+    void setup(params::Collector &collector, const std::string &stableNamePrefix)
+    {
+        auto g = params::CaptureCollectedRangeGuard(collector, range);
+        sampleDelay.collectTo(collector)
+            .withStableName(stableNamePrefix + "_sampleDelay")
+            .withRange(1.f, 16000.f, 2000.f);
+        feedback.collectTo(collector)
+            .withStableName(stableNamePrefix + "_feedback")
+            .withRange(0.f, 1.f, 0.2f);
+    }
+};
 struct OscPatch
 {
     params::CollectedRange range;
 
     params::Param sqrSawMix, pulseWidth;
-    void setup(params::Collector &collector, const std::string stableNamePrefix)
+    void setup(params::Collector &collector, const std::string &stableNamePrefix)
     {
         auto g = params::CaptureCollectedRangeGuard(collector, range);
         sqrSawMix.collectTo(collector)
@@ -27,6 +42,7 @@ struct FilteredAREnvPatch
 
     // "Global" (or not-per-voice) items
     params::Param mainVolume;
+    DelayPatch delay;
 
     // "Per Voice" items
     OscPatch osc[2];
@@ -39,6 +55,7 @@ struct FilteredAREnvPatch
         {
             auto q = params::CaptureCollectedRangeGuard(collector, globalRange);
             mainVolume.collectTo(collector).withStableName("main_volume").withRange(0.f, 1.f, 0.8f);
+            delay.setup(collector, "delay");
         }
 
         auto vg = params::CaptureCollectedRangeGuard(collector, voiceRange);
@@ -52,15 +69,6 @@ struct FilteredAREnvPatch
     }
 };
 
-struct DelayedPatch
-{
-    params::Collector collector;
-
-    OscPatch osc;
-    params::Param feedback, delay;
-
-    void setup() { osc.setup(collector, "generator"); }
-};
 
 int main(int argc, char **argv)
 {
@@ -116,7 +124,7 @@ int main(int argc, char **argv)
     }
 
     std::cout << "Specified range onto float *" << std::endl;
-    assert(ss.collector.extractOnto(oscFP, {4,6}));
+    assert(ss.collector.extractOnto(oscFP, {4, 6}));
     for (const auto &f : oscFP)
     {
         std::cout << "  - " << (f ? std::to_string(*f) : "nullptr") << std::endl;
