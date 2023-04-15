@@ -115,6 +115,7 @@ struct CollectedRange
     CollectedRange(Param::rti_t f, Param::rti_t t) : from(f), to(t) {}
 
     bool contains(Param::rti_t x) const { return x >= from && x < to; }
+    size_t size() const { return to - from; }
 
     friend std::ostream &operator<<(std::ostream &os, const CollectedRange &z)
     {
@@ -150,11 +151,9 @@ struct Collector
     template <size_t N>
     bool extractOnto(std::array<Param::pdata_t, N> &arr, const CollectedRange &r)
     {
-        auto pts = r.to - r.from;
-        assert(pts <= N);
-        if (pts > N)
+        if (r.size() > N)
             return false;
-        for (auto i = 0; i < pts; ++i)
+        for (auto i = 0; i < r.size(); ++i)
         {
             arr[i] = paramWeakPtrs[i + r.from]->val;
         }
@@ -163,11 +162,9 @@ struct Collector
 
     template <size_t N> bool extractOnto(std::array<float *, N> &arr, const CollectedRange &r)
     {
-        auto pts = r.to - r.from;
-        assert(pts <= N);
-        if (pts > N)
+        if (r.size() > N)
             return false;
-        for (auto i = 0; i < pts; ++i)
+        for (auto i = 0; i < r.size(); ++i)
         {
             arr[i] = std::get_if<float>(&paramWeakPtrs[i + r.from]->val);
         }
